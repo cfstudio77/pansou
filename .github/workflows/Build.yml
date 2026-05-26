@@ -8,7 +8,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # 在这里添加环境变量来消除警告
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
@@ -31,7 +30,10 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: latest
+          name: Latest Release
           files: pansou-linux.tar.gz
           generate_release_notes: true
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
