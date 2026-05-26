@@ -1,15 +1,16 @@
 name: Build Pansou
 on: 
   push:
-    branches:
-      - main  # 确保在 push 到 main 分支时触发
 
 permissions:
-  contents: write # 重要：必须声明此权限，否则无法创建 Release
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 在这里添加环境变量来消除警告
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
       
@@ -25,12 +26,10 @@ jobs:
           
       - name: Package
         run: |
-          # 打包文件
           tar -czvf pansou-linux.tar.gz pansou
           
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/') # 可选：如果只想在打标签时发布，保留这行；如果想每次push都发布，删掉这行
         with:
           files: pansou-linux.tar.gz
           generate_release_notes: true
