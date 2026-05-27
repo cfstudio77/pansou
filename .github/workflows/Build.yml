@@ -37,3 +37,30 @@ jobs:
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # --- 新增后端自动部署步骤 ---
+      - name: Deploy to Azure
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AZURE_IP }}
+          username: ${{ secrets.AZURE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "pansou-linux.tar.gz"
+          target: "/tmp/"
+
+      - name: Extract and Restart on Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_IP }}
+          username: ${{ secrets.AZURE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # 停止服务
+            sudo systemctl stop pansou
+            # 解压并替换二进制文件
+            sudo tar -zxvf /tmp/pansou-linux.tar.gz -C /opt/pansou/
+            sudo chmod +x /opt/pansou/pansou
+            # 清理临时文件
+            sudo rm /tmp/pansou-linux.tar.gz
+            # 重启服务
+            sudo systemctl start pansou
