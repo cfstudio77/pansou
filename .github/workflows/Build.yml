@@ -13,21 +13,17 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
-      
       - uses: actions/setup-go@v5
         with:
           go-version: '1.22'
           cache: false
-          
       - name: Build
         run: |
           go mod tidy
           GOOS=linux GOARCH=amd64 go build -v -o pansou main.go
-          
       - name: Package
         run: |
           tar -czvf pansou-linux.tar.gz pansou
-          
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
@@ -38,27 +34,3 @@ jobs:
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Deploy to Azure
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: "${{ secrets.AZURE_IP }}"
-          username: ${{ secrets.AZURE_USER }}"
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            # 下载最新发布的版本
-            sudo wget -O /tmp/pansou-linux.tar.gz https://github.com/${{ github.repository }}/releases/latest/download/pansou-linux.tar.gz
-            
-            # 停止服务
-            sudo systemctl stop pansou || true
-            
-            # 解压并部署
-            sudo tar -zxvf /tmp/pansou-linux.tar.gz -C /opt/pansou/
-            sudo chmod +x /opt/pansou/pansou
-            
-            # 清理临时文件
-            sudo rm /tmp/pansou-linux.tar.gz
-            
-            # 重启服务
-            sudo systemctl start pansou
